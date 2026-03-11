@@ -17,8 +17,8 @@ MAXCC=0
 targetdir=$1
 if [ "${targetdir}." = "." ];
 then
-   # targetdir="/opt/dickinson/js_testing/bin"
-   targetdir="/opt/dickinson/scheduler/bin"
+    targetdir="/opt/dickinson/js_testing/bin"
+#   targetdir="/opt/dickinson/scheduler/bin"
 fi
 if [ ! -d ${targetdir} ];
 then

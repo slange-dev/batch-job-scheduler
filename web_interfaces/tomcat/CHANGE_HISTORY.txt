@@ -15,14 +15,9 @@ Mar 2004, Added a buffer check and if required a delay when reading replies from
 Nov 2018, Re-tested under Jetty (as I now use Jetty insterad of Tomcat as Jetty has
           a much smaller footprint) to make sure it still worked after quite a few
           server changes.
-
-KNOWN ISSUES:
-1. Offset error from one of the command screens (can't remember which and
-   after a disk crash have restored back onto a new (much larger yippee) disk
-   from last months backups, which don't contain my debug notes on the issue
-   which is a shame as it was a really easy fix).
-2. The automatic screen refreshes don't work under mozilla (any version).
-   Everything still works A-OK under IE.
+Aug 2025, Re-tested under Jetty9 on Debian13. Moved issues list from this
+          file to a KNOWN_BUGS.txt file. Made the 'schedlistall' a default
+          page if no page was selected
 
 WORK TO DO:
 1. Add online help

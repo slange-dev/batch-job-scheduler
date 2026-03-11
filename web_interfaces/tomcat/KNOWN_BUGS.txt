@@ -1,0 +1,29 @@
+Known Bugs in the Tomcat/Jetty interface
+
+(1) - I am not happy with the menu bar always dropping
+      options on the far left, makes it hard to use
+
+(2) - Re-testing under Jetty9 on Debian13 behaviour changes ?
+      (2a) user inactivity timeout seems to be only a few minutes
+           which is NOT what is expected. Makes it difficult to
+           use if you do not even have time to grab another coffee.
+           Although that seems to have fixed itself without me
+           doing any changes which is a concern until I work out
+           what was/is going on there.
+      (2b) changing the refresh value field does nothing. I
+           think that used to work. I may need to add an
+           action to that field... once I am sure the session
+           timeout is sorted as there is no point having a 5min+
+           refresh is a session times out in 2mins.
+
+(3) - Carried over from 2018 (or earlier) issues
+      Offset error from one of the command screens (can't remember which and
+      after a disk crash have restored back onto a new (much larger yippee) disk
+      from last months backups, which don't contain my debug notes on the issue
+      which is a shame as it was a really easy fix).
+
+(4) - Carried over from 2018 (or earlier) issues
+      The automatic screen refreshes don't work under mozilla (any version).
+      Everything still works A-OK under IE.
+      (Yes IE, carried over from long ago, not tested under Edge as I no
+       longer use Windows).

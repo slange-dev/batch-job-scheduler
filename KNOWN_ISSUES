@@ -1,10 +1,18 @@
 These are the current issues, and whether I consider them a bug or not.
+Bugs marked 'trivial' do not imnpact operation but will be looked at one day.
 
-Issue1 - Don't change the servers timezone (not a bug)
-Issue2 - All job numbers are 000000 (not a bug)
-Issue3 - Design decision for systemd (not a bug)
-Issue4 - JS port 9002 not released when job scheduler killed if JS job started another
-         tcpip process (only seen when the scheduler starts snort)
+Issue1 - (not a bug) Don't change the servers timezone
+Issue2 - (not a bug) All job numbers are 000000 
+Issue3 - (not a bug) Design decision for systemd 
+Issue4 - (bug, trivial) JS port 9002 not released when job scheduler killed if JS job started another
+         tcpip process (only seen when the scheduler starts snort). Only an issue when
+         killed (kill -9) not when stopped with systemctl
+Issue5 - (bug, major) a job failed to start (command being truncated ?), seen only on one server
+Issue6 - (bug, trivial, in that users can do things they should not but it keeps working)
+       + jobsched_security_checks does not handle jobs with parms in the cmd field
+       + job add command does not enforce use of parm field by preventing parms in cmd
+Issue7 - (bug, minor) user last logged in timestamp not updated by autologin, sometimes not even explicit user ?
+         
 
 -------------------------------------------------------------------------------------------
                      Issue1 - Don't change the servers timezone
@@ -38,7 +46,7 @@ so, that would be a waste of cycles for something that is unlikely to ever happe
                      Issue2 - All job numbers are 000000
                                 **  NOT A BUG **
 -------------------------------------------------------------------------------------------
-This is just something I have needed needed to implement, and have in fact forgotten why
+This is just something I have never needed to implement, and have in fact forgotten why
 I created the field in the first place as jobs are keyed by jobname.
 
 Just something to be aware of when you display job details, the field is expected to be 
@@ -111,6 +119,7 @@ Note: this is a perfectly valid design solution, it is in fact the same solution
 Found in a situation where I stopped the job scheduler with a 'kill -9'.
 The 'snort' process which does not use port 9002 but which had been started by the scheduler
 took ownership of the port and kept it open.
+This prevented the scheduler from restarting as it wanted that port.
 
 [root@phoenix init.d]# netstat -anp | grep 9002
 tcp        2      0 192.168.1.187:9002      0.0.0.0:*               LISTEN      3331576/snort  
@@ -119,7 +128,69 @@ That should not have happened or been permitted by the operating system.
 This may be specific to "snort" as it monitors activity on ports.
 
 This does not happen when the scheduler is shutdown on a controlled fashion with "sched shutdown"
-(note: sched shutdown is also issues by the supplied service file).
+(note: sched shutdown is also issued by the supplied service file).
 
 RESOLUTION: avoid using 'kill' to stop the scheduler, always try to shut it down properly.
+
+-------------------------------------------------------------------------------------------
+              Issue5 - job failed to start with command truncated
+-------------------------------------------------------------------------------------------
+Job joblog showed only a bash error on line 1 trying to run the job input
+file, the job log implies the command may have been truncated by two bytes.
+Alert restart of the job resulted in the same error. Job info showed full command string.
+Seen only on one instance of the job scheduler (I have four running) so not related to a 
+specific date/time [it was the scheduler backup job that runs at the same time on all four].
+Not related to the length of time the scheduler has been running, that server had been
+rebooted a day earlier.
+
+Resolution was simply a systemctl stop/start of the service and the problem went away,
+but there is a bug somewhere.
+- Note: seen once in 5+yrs.
+Update: seen two more times but
+      only on that one server and that one job, identical scheduler binaries+job to
+      servers with no issue and it has just started happening, no root cause found.
+TODO: add more debugging messages to try and find what is unique on that server.
+- Note2: also seeing random large bash script failures where just rerunning the script
+         works, possible it is memory corruption on that one server that runs quite hot.
+
+-------------------------------------------------------------------------------------------
+        Issue6 - jobsched_security_checks does not handle jobs parms in the cmd field
+               - job add command does not enforce use of parm field
+-------------------------------------------------------------------------------------------
+It is expected when a job is added that any parameters are placed into the PARM field, but
+that is not enforced with the job add command; this means it is possible to add a job
+command that includes the parm as part of the command as below.
+When the jobsched_security_checks runs to check ownership/security of the command it looks
+for a filename of the entire command string length so in the case here it cannot find the
+command file.
+
+Job record SYS-CACHE-FLUSH
+  Command /usr/sbin/sysctl vm.drop_caches=3
+  Job runs under userid root
+    *** /usr/sbin/sysctl vm.drop_caches=3 does not exist or permission denied
+
+This is something I will fix one day, but it is misuse that I am obviously guilty
+of also so the immediate fix is to re-add the job correctly as
+   cmd /usr/sbin/sysctl,parm "vm.drop_caches=3,...
+instead of the incorrect way I used of
+   cmd /usr/sbin/sysctl vm.drop_caches=3,...
+
+-------------------------------------------------------------------------------------------
+        Issue7 - user last logged in timestamp not updated by autologin
+-------------------------------------------------------------------------------------------
+When a user logs in with "user password" the last logged in timestamp is updated, that
+is not done with an 'autologin' (permitted if the user is logged onto the server with a
+userid matching one in the scheduler database and the sheduler userid has the autoauth
+flag set; or the logged on user is root).
+[Obviously better than having to hard code a password in scripts].
+
+The only impact is jobsched_security_checks wil report a user has not logged in in
+over 60 days if that user only ever uses autologin.
+
+This is a actual bug; something to be fixed one day.
+Original logic was probably something like there is no 'root' user defined in the scheduler
+database so trying to update timestamp wasn't possible [origional purpose was so root
+could autologin to issue clean shutdown comands for server reboots or scheduler stops],
+then I added a flag so selected users could also use autologin but didn't think about
+that timestamp bit.
 

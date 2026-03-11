@@ -177,6 +177,7 @@ What we do here is
      if (pageJobName == null) { pageJobName = ""; }
      if (pageHostName == null) { pageHostName = ""; }
      if (pageActionName == null) { pageActionName = ""; }
+     if (pageRequestType == null) { pageRequestType = "schedlistall"; }
      userPool.setUserContext( session.getId(), pageHostName, pageJobName, pageActionName );
      userPool.setUserActivityTime( session.getId() );  // user has done something, rest inactive timer
      // Build the menu bar
@@ -191,6 +192,9 @@ What we do here is
 2. See what the request type was and display the appropriate page.
 --%>
 <%
+  if (pageRequestType.equals("")) {
+      pageRequestType="schedlistall";
+  }
   if (pageRequestType.equals("logon")) {
 %>
 <%@ include file="inc_logonpage.jsp" %>

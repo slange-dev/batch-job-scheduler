@@ -951,6 +951,12 @@ int  SCHED_spawn_job( active_queue_def * datarec ) {
                 local_rec.program_to_execute, local_rec.program_parameters,
                 local_rec.job_header.jobname );
    }
+
+   /* 16Jan2026 - added for additional debugging */
+   if (pSCHEDULER_CONFIG_FLAGS.debug_level.schedlib >= DEBUG_LEVEL_PROC) {
+      myprintf("DEBUG: SCHED_spawn_job command=%s\n", commandline );
+   }
+
 /*
    myprintf( "INFO: SYSTEM CALL PARMS = %s\n", commandline );
    junk = system( commandline );
